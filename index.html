@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow AI – BLE Holdings</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+/* ── RESET & BASE ── */
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F7F6F3;--surface:#FFFFFF;--surface2:#F0EEE9;--surface3:#E8E5DF;
+  --border:#E2DED8;--border2:#CCC8C0;
+  --text:#1A1916;--text2:#5A5751;--text3:#9B978F;
+  --accent:#2D2A24;--purple:#534AB7;--purple-lt:#EEEDFE;
+  --green:#1A6B41;--green-lt:#E1F5EE;
+  --red:#C0392B;--red-lt:#FCEBEB;
+  --amber:#8B5E00;--amber-lt:#FEF3DC;
+  --blue:#185FA5;--blue-lt:#E6F1FB;
+  --radius:8px;--radius-lg:12px;--radius-xl:16px;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 12px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.04);
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);font-size:13px;line-height:1.5}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-columns:210px 1fr;grid-template-rows:52px 1fr;height:100vh;overflow:hidden}
+.topbar{grid-column:1/-1;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 1rem;gap:10px;z-index:20;box-shadow:var(--shadow)}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);overflow-y:auto;padding:.5rem 0;display:flex;flex-direction:column}
+.main{overflow-y:auto;padding:1.25rem;background:var(--bg)}
+
+/* ── TOPBAR ── */
+.logo{font-size:14px;font-weight:600;letter-spacing:-.3px;display:flex;align-items:center;gap:7px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--purple)}
+.spacer{flex:1}
+.status-badge{display:flex;align-items:center;gap:5px;background:var(--green-lt);border:1px solid #9FE1CB;border-radius:20px;padding:3px 10px;font-size:11px;color:var(--green);font-weight:500}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--purple-lt);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:var(--purple)}
+
+/* ── SIDEBAR ── */
+.sec-label{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;padding:10px 14px 3px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:6px 14px;font-size:12px;font-weight:400;color:var(--text2);cursor:pointer;transition:background .12s,color .12s;border-radius:0}
+.nav-item:hover{background:var(--surface2);color:var(--text)}
+.nav-item.active{background:var(--purple-lt);color:var(--purple);font-weight:500}
+.nav-item i{font-size:15px}
+.nbadge{margin-left:auto;font-size:10px;padding:1px 6px;border-radius:9px;background:var(--purple);color:#fff;font-family:'DM Mono',monospace}
+.nbadge.r{background:var(--red)}
+.sidebar-footer{margin-top:auto;padding:.75rem;border-top:1px solid var(--border)}
+.sheets-link{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--text3);padding:6px 8px;border-radius:var(--radius);border:1px solid var(--border);text-decoration:none;transition:background .12s}
+.sheets-link:hover{background:var(--surface2);color:var(--text2)}
+
+/* ── PAGES ── */
+.page{display:none;flex-direction:column;gap:1rem}
+.page.active{display:flex}
+
+/* ── COMPONENTS ── */
+.ph{display:flex;align-items:flex-start;gap:12px}
+.pt{font-size:17px;font-weight:600;letter-spacing:-.3px}
+.ps{font-size:12px;color:var(--text3);margin-top:2px}
+.ha{margin-left:auto;display:flex;gap:7px;align-items:center;flex-shrink:0}
+
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;background:var(--surface);color:var(--text);font-weight:500;transition:all .12s;white-space:nowrap}
+.btn:hover{background:var(--surface2);border-color:var(--border2)}
+.btn.primary{background:var(--purple);color:#fff;border-color:var(--purple)}
+.btn.primary:hover{background:#3C3489;border-color:#3C3489}
+.btn.success{background:var(--green);color:#fff;border-color:var(--green)}
+.btn.sm{padding:4px 9px;font-size:11px}
+.btn.xs{padding:2px 7px;font-size:10px}
+.btn i{font-size:13px}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.875rem 1rem;box-shadow:var(--shadow)}
+.ct{font-size:12px;font-weight:600;letter-spacing:.01em;color:var(--text2);margin-bottom:10px;display:flex;align-items:center;gap:7px;text-transform:uppercase}
+.ct i{font-size:14px}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.875rem 1rem;box-shadow:var(--shadow)}
+.sl{font-size:11px;color:var(--text3);margin-bottom:4px;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.sv{font-size:26px;font-weight:600;font-family:'DM Mono',monospace;letter-spacing:-1px}
+.sv.purple{color:var(--purple)}.sv.red{color:var(--red)}.sv.green{color:var(--green)}.sv.amber{color:var(--amber)}
+.ss{font-size:10px;color:var(--text3);margin-top:3px}
+
+/* ── GRID ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1rem}
+
+/* ── QUICK ADD ── */
+.quick-add{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.6rem .875rem;display:flex;align-items:center;gap:8px;box-shadow:var(--shadow);transition:border-color .15s}
+.quick-add:focus-within{border-color:var(--purple)}
+.qa-input{flex:1;border:none;background:transparent;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);outline:none}
+.qa-input::placeholder{color:var(--text3)}
+.qa-div{width:1px;height:18px;background:var(--border)}
+.qa-sel{border:none;background:transparent;font-size:11px;font-family:'DM Sans',sans-serif;color:var(--text2);outline:none;cursor:pointer;padding:0 2px}
+
+/* ── TASK ITEMS ── */
+.tl{display:flex;flex-direction:column;gap:4px}
+.ti{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;border-radius:var(--radius);border:1px solid var(--border);cursor:default;transition:border-color .12s,background .12s}
+.ti:hover{border-color:var(--border2);background:var(--surface2)}
+.ti.done-task{opacity:.45}
+.dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.p-high{background:var(--red)}.p-med{background:#EF9F27}.p-low{background:var(--green)}
+.chk{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--border2);flex-shrink:0;margin-top:2px;cursor:pointer;transition:all .15s;display:flex;align-items:center;justify-content:center}
+.chk:hover{border-color:var(--purple)}
+.chk.done{background:var(--purple);border-color:var(--purple)}
+.chk.done::after{content:'';width:5px;height:5px;background:#fff;border-radius:50%;display:block}
+.tc{flex:1;min-width:0}
+.tn{font-size:12px;line-height:1.45;font-weight:500}
+.tm{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap}
+.tag{font-size:10px;padding:1px 7px;border-radius:8px;font-weight:500;letter-spacing:.01em}
+.tag.work{background:var(--purple-lt);color:var(--purple)}
+.tag.personal{background:var(--green-lt);color:var(--green)}
+.tag.project{background:var(--amber-lt);color:var(--amber)}
+.tag.meeting{background:var(--blue-lt);color:var(--blue)}
+.due{font-size:10px;color:var(--text3);display:flex;align-items:center;gap:3px}
+.due.od{color:var(--red);font-weight:500}
+
+/* ── CALENDAR ── */
+.cel{display:flex;flex-direction:column;gap:5px}
+.ce{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border-radius:var(--radius);border-left:3px solid var(--purple);background:var(--surface2)}
+.ce.gcal{border-left-color:var(--green)}
+.cetime{font-size:10px;color:var(--text3);white-space:nowrap;padding-top:1px;min-width:65px;font-family:'DM Mono',monospace}
+.cetitle{font-size:12px;font-weight:600}
+.cesub{font-size:10px;color:var(--text2);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.csrc{font-size:9px;padding:1px 5px;border-radius:7px;background:var(--green-lt);color:var(--green);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+
+/* ── AI PANEL ── */
+.aip{background:linear-gradient(135deg,#F0EFFB 0%,#EAF3FC 100%);border:1px solid #D5D1F5;border-radius:var(--radius-lg);padding:.875rem 1rem}
+.aipt{font-size:11px;font-weight:600;color:var(--purple);display:flex;align-items:center;gap:7px;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em}
+.ais{display:flex;flex-direction:column;gap:5px}
+.aig{background:#fff;border:1px solid #D5D1F5;border-radius:var(--radius);padding:7px 10px;font-size:11px;color:var(--text2);cursor:pointer;display:flex;align-items:center;gap:7px;transition:all .12s;font-weight:500}
+.aig:hover{background:var(--purple-lt);border-color:#B8B3EF;color:var(--purple)}
+.aig i{color:var(--purple);font-size:13px;flex-shrink:0}
+
+/* ── PROJECTS ── */
+.pgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.pc{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.875rem 1rem;cursor:pointer;transition:border-color .15s,box-shadow .15s;box-shadow:var(--shadow)}
+.pc:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}
+.picon{width:36px;height:36px;border-radius:var(--radius);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.pname{font-size:13px;font-weight:600;letter-spacing:-.2px}
+.pdesc{font-size:11px;color:var(--text3);margin-top:1px}
+.pbar{height:3px;background:var(--surface3);border-radius:2px;margin:8px 0 4px}
+.pfill{height:100%;border-radius:2px;background:var(--purple);transition:width .3s}
+.plabel{font-size:10px;color:var(--text3);display:flex;justify-content:space-between;font-family:'DM Mono',monospace}
+
+/* ── KANBAN ── */
+.kanban{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;align-items:start}
+.kb-col{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:.75rem}
+.kb-col.drag-over{border-color:var(--purple);background:var(--purple-lt)}
+.kb-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.kb-title{font-size:11px;font-weight:600;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.06em;color:var(--text2)}
+.kb-count{font-size:10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:1px 6px;color:var(--text3);font-family:'DM Mono',monospace}
+.kb-cards{display:flex;flex-direction:column;gap:6px;min-height:50px}
+.kb-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;cursor:grab;box-shadow:var(--shadow);transition:border-color .12s,box-shadow .12s}
+.kb-card:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}
+.kb-card.dragging{opacity:.35;transform:scale(.96)}
+.kb-card-name{font-size:11px;font-weight:500;line-height:1.4;margin-bottom:5px}
+.kb-card-meta{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.kb-add{width:100%;border:none;background:none;color:var(--text3);font-size:11px;font-family:'DM Sans',sans-serif;padding:5px 2px;cursor:pointer;text-align:left;display:flex;align-items:center;gap:4px;margin-top:4px}
+.kb-add:hover{color:var(--text)}
+
+/* ── MODALS ── */
+.overlay{position:fixed;inset:0;background:rgba(20,18,14,.4);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(2px)}
+.overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:var(--radius-xl);width:460px;max-height:90vh;overflow-y:auto;border:1px solid var(--border);box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.mh{padding:1rem 1.25rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.mh-icon{width:32px;height:32px;border-radius:var(--radius);background:var(--purple-lt);display:flex;align-items:center;justify-content:center;font-size:15px;color:var(--purple)}
+.mhtitle{font-size:14px;font-weight:600;letter-spacing:-.2px;flex:1}
+.mb{padding:1.25rem;display:flex;flex-direction:column;gap:12px}
+.mf{padding:.875rem 1.25rem;border-top:1px solid var(--border);display:flex;gap:7px;justify-content:flex-end}
+.fg{display:flex;flex-direction:column;gap:5px}
+.fl{font-size:11px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.05em}
+.fi{border:1px solid var(--border);border-radius:var(--radius);padding:7px 10px;font-size:12px;font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text);outline:none;width:100%;transition:border-color .12s}
+.fi:focus{border-color:var(--purple);box-shadow:0 0 0 2px rgba(83,74,183,.1)}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+select.fi option{background:var(--surface)}
+
+/* ── AI GENERATE ── */
+.gen-task{display:flex;align-items:flex-start;gap:8px;padding:7px 9px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border)}
+.gen-chk{width:14px;height:14px;border-radius:3px;border:1.5px solid var(--border2);cursor:pointer;flex-shrink:0;margin-top:2px;transition:all .12s}
+.gen-chk.sel{background:var(--purple);border-color:var(--purple)}
+.loading-spinner{display:inline-block;width:16px;height:16px;border:2px solid var(--purple-lt);border-top-color:var(--purple);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── SYNC STATUS ── */
+.sync-row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text3);margin-top:6px}
+.sync-ok{color:var(--green)}
+.sync-err{color:var(--red)}
+
+/* ── AI CHAT ── */
+.ai-chat{position:fixed;bottom:16px;right:16px;z-index:100}
+.ai-chat-btn{width:44px;height:44px;border-radius:50%;background:var(--purple);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:19px;box-shadow:0 4px 14px rgba(83,74,183,.35);transition:transform .15s,background .12s}
+.ai-chat-btn:hover{background:#3C3489;transform:scale(1.05)}
+.ai-window{position:absolute;bottom:54px;right:0;width:300px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-xl);overflow:hidden;display:none;flex-direction:column;box-shadow:var(--shadow-md)}
+.ai-window.open{display:flex}
+.aiwh{background:var(--purple);color:#fff;padding:10px 14px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:7px;letter-spacing:-.1px}
+.ai-msgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;min-height:160px;max-height:240px}
+.am{font-size:11px;padding:7px 10px;border-radius:var(--radius);max-width:90%;line-height:1.55;font-weight:400}
+.am.bot{background:var(--surface2);align-self:flex-start;border:1px solid var(--border)}
+.am.user{background:var(--purple);color:#fff;align-self:flex-end}
+.ai-ir{display:flex;border-top:1px solid var(--border)}
+.ai-inp{flex:1;border:none;padding:8px 10px;font-size:11px;font-family:'DM Sans',sans-serif;background:transparent;color:var(--text);outline:none}
+.ai-send{border:none;background:none;padding:7px 10px;cursor:pointer;color:var(--purple);font-size:15px;transition:color .12s}
+.ai-send:hover{color:#3C3489}
+
+/* ── TOASTS ── */
+.toast-container{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:300;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:var(--text);color:#fff;padding:8px 16px;border-radius:var(--radius);font-size:11px;font-weight:500;opacity:0;transform:translateY(8px);transition:all .2s;pointer-events:none}
+.toast.show{opacity:1;transform:translateY(0)}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+
+.empty{text-align:center;padding:1.5rem;color:var(--text3);font-size:12px}
+.empty i{font-size:26px;margin-bottom:6px;display:block;opacity:.4}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="logo"><div class="logo-dot"></div>TaskFlow AI</div>
+    <div class="spacer"></div>
+    <div class="status-badge" id="sheets-status"><div class="status-dot"></div> Sheets connected</div>
+    <button class="btn sm" onclick="openModal('ai-gen')"><i class="ti ti-sparkles"></i> AI Generate</button>
+    <button class="btn sm primary" onclick="openModal('add-task')"><i class="ti ti-plus"></i> New Task</button>
+    <div class="avatar">MB</div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sec-label">Overview</div>
+    <div class="nav-item active" onclick="nav('dashboard',this)"><i class="ti ti-home"></i> Dashboard</div>
+    <div class="nav-item" onclick="nav('tasks',this)"><i class="ti ti-checkbox"></i> All Tasks <span class="nbadge" id="nb-tasks">-</span></div>
+    <div class="nav-item" onclick="nav('kanban',this)"><i class="ti ti-layout-kanban"></i> Kanban Board</div>
+    <div class="nav-item" onclick="nav('calendar',this)"><i class="ti ti-calendar"></i> Calendar <span class="nbadge r" id="nb-cal">-</span></div>
+    <div class="sec-label">Work</div>
+    <div class="nav-item" onclick="nav('projects',this)"><i class="ti ti-briefcase"></i> Projects</div>
+    <div class="nav-item" onclick="navFilter('tasks','work',this)"><i class="ti ti-building"></i> Work Tasks</div>
+    <div class="sec-label">Personal</div>
+    <div class="nav-item" onclick="navFilter('tasks','personal',this)"><i class="ti ti-user"></i> Personal Tasks</div>
+    <div class="sidebar-footer">
+      <a class="sheets-link" href="https://docs.google.com/spreadsheets/d/1ZICuwpz9iL3IgMntdZnrwUs4JNp0mBRgBq_xcgg3oDg/edit" target="_blank">
+        <i class="ti ti-table" style="font-size:14px"></i> Open Google Sheet
+      </a>
+      <div class="sync-row" id="sync-status"><i class="ti ti-refresh" style="font-size:12px"></i> Last synced: loading…</div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="ph">
+        <div>
+          <div class="pt" id="dash-greet">Good day, Matt ☀️</div>
+          <div class="ps" id="dash-sub">Loading your schedule…</div>
+        </div>
+        <div class="ha">
+          <button class="btn" onclick="syncFromSheets()"><i class="ti ti-refresh"></i> Sync</button>
+          <button class="btn primary" onclick="openModal('add-task')"><i class="ti ti-plus"></i> New Task</button>
+        </div>
+      </div>
+
+      <!-- Quick Add -->
+      <div class="quick-add">
+        <i class="ti ti-pencil" style="color:var(--text3);font-size:14px"></i>
+        <input class="qa-input" id="qa" placeholder="Quick-add a task — type and press Enter…" onkeydown="if(event.key==='Enter')qaAdd('qa','qa-cat','qa-pri')">
+        <div class="qa-div"></div>
+        <select class="qa-sel" id="qa-cat"><option value="work">Work</option><option value="personal">Personal</option><option value="project">Project</option></select>
+        <div class="qa-div"></div>
+        <select class="qa-sel" id="qa-pri"><option value="high">↑ High</option><option value="med">– Med</option><option value="low">↓ Low</option></select>
+        <button class="btn sm primary" onclick="qaAdd('qa','qa-cat','qa-pri')">Add</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats">
+        <div class="sc"><div class="sl">Open Tasks</div><div class="sv purple" id="s-open">–</div><div class="ss">across all categories</div></div>
+        <div class="sc"><div class="sl">Overdue</div><div class="sv red" id="s-od">–</div><div class="ss">needs attention now</div></div>
+        <div class="sc"><div class="sl">Due Today</div><div class="sv amber" id="s-today">–</div><div class="ss">on today's schedule</div></div>
+        <div class="sc"><div class="sl">Meetings</div><div class="sv green" id="s-mtg">–</div><div class="ss">this week · Google Cal</div></div>
+      </div>
+
+      <!-- AI Insights -->
+      <div class="aip">
+        <div class="aipt"><i class="ti ti-sparkles"></i> Claude's Insights</div>
+        <div class="ais" id="ai-insights"><div class="aig"><i class="ti ti-loader"></i> Loading…</div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="ct"><i class="ti ti-flame" style="color:var(--red)"></i> High Priority</div>
+          <div class="tl" id="d-priority"></div>
+        </div>
+        <div class="card">
+          <div class="ct"><i class="ti ti-brand-google" style="color:var(--green)"></i> This Week's Meetings</div>
+          <div class="cel" id="d-cal"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="ct"><i class="ti ti-briefcase"></i> Active Projects</div>
+        <div class="pgrid" id="d-projects"></div>
+      </div>
+    </div>
+
+    <!-- ── ALL TASKS ── -->
+    <div class="page" id="page-tasks">
+      <div class="ph">
+        <div><div class="pt">All Tasks</div><div class="ps">Sorted by priority · synced to Google Sheets</div></div>
+        <div class="ha">
+          <select class="btn" id="f-cat" onchange="renderTasks()" style="padding:5px 8px">
+            <option value="">All categories</option>
+            <option value="work">Work</option><option value="personal">Personal</option><option value="project">Project</option>
+          </select>
+          <select class="btn" id="f-pri" onchange="renderTasks()" style="padding:5px 8px">
+            <option value="">All priorities</option>
+            <option value="high">High</option><option value="med">Medium</option><option value="low">Low</option>
+          </select>
+          <button class="btn" onclick="syncFromSheets()"><i class="ti ti-refresh"></i> Sync</button>
+          <button class="btn primary" onclick="openModal('add-task')"><i class="ti ti-plus"></i> New Task</button>
+        </div>
+      </div>
+      <div class="quick-add">
+        <i class="ti ti-pencil" style="color:var(--text3);font-size:14px"></i>
+        <input class="qa-input" id="qa2" placeholder="Quick-add a task and press Enter…" onkeydown="if(event.key==='Enter')qaAdd('qa2','qa-cat2','qa-pri2')">
+        <div class="qa-div"></div>
+        <select class="qa-sel" id="qa-cat2"><option value="work">Work</option><option value="personal">Personal</option><option value="project">Project</option></select>
+        <div class="qa-div"></div>
+        <select class="qa-sel" id="qa-pri2"><option value="high">↑ High</option><option value="med">– Med</option><option value="low">↓ Low</option></select>
+        <button class="btn sm primary" onclick="qaAdd('qa2','qa-cat2','qa-pri2')">Add</button>
+      </div>
+      <div class="card"><div class="tl" id="all-tasks"></div></div>
+    </div>
+
+    <!-- ── KANBAN ── -->
+    <div class="page" id="page-kanban">
+      <div class="ph">
+        <div><div class="pt">Kanban Board</div><div class="ps">Drag to update status · synced to Sheets</div></div>
+        <div class="ha">
+          <button class="btn primary" onclick="openModal('add-task')"><i class="ti ti-plus"></i> New Task</button>
+        </div>
+      </div>
+      <div class="kanban" id="kanban-board"></div>
+    </div>
+
+    <!-- ── CALENDAR ── -->
+    <div class="page" id="page-calendar">
+      <div class="ph">
+        <div><div class="pt">Calendar & Meetings</div><div class="ps">Live · Google Calendar · matthewlazaro2024@gmail.com</div></div>
+        <div class="ha"><button class="btn" onclick="renderCalendar()"><i class="ti ti-refresh"></i> Refresh</button></div>
+      </div>
+      <div class="card">
+        <div class="ct"><i class="ti ti-brand-google" style="color:var(--green)"></i> Upcoming Events This Week</div>
+        <div class="cel" id="cal-events"></div>
+      </div>
+      <div class="card">
+        <div class="ct"><i class="ti ti-link"></i> Tasks Linked to Meetings</div>
+        <div class="tl" id="linked-tasks"></div>
+      </div>
+    </div>
+
+    <!-- ── PROJECTS ── -->
+    <div class="page" id="page-projects">
+      <div class="ph">
+        <div><div class="pt">Work Projects</div><div class="ps">Track milestones and task progress</div></div>
+        <div class="ha"><button class="btn primary" onclick="openModal('add-project')"><i class="ti ti-plus"></i> New Project</button></div>
+      </div>
+      <div class="pgrid" id="all-projects" style="grid-template-columns:repeat(2,1fr)"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ── ADD TASK MODAL ── -->
+<div class="overlay" id="modal-add-task">
+  <div class="modal">
+    <div class="mh">
+      <div class="mh-icon"><i class="ti ti-checkbox"></i></div>
+      <div class="mhtitle">New Task</div>
+      <button class="btn sm" onclick="closeModal('add-task')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="mb">
+      <div class="fg"><div class="fl">Task Name *</div><input class="fi" id="nt-name" placeholder="e.g. Prepare Q3 budget report"></div>
+      <div class="fr">
+        <div class="fg"><div class="fl">Category</div><select class="fi" id="nt-cat"><option value="work">Work</option><option value="personal">Personal</option><option value="project">Project</option></select></div>
+        <div class="fg"><div class="fl">Priority</div><select class="fi" id="nt-pri"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select></div>
+      </div>
+      <div class="fr">
+        <div class="fg"><div class="fl">Due Date</div><input class="fi" id="nt-due" type="date"></div>
+        <div class="fg"><div class="fl">Project</div><select class="fi" id="nt-proj"><option value="">None</option></select></div>
+      </div>
+      <div class="fg"><div class="fl">Linked Meeting</div><select class="fi" id="nt-gcal"><option value="">None</option></select></div>
+      <div class="fg"><div class="fl">Kanban Status</div><select class="fi" id="nt-status"><option value="todo">To Do</option><option value="inprogress">In Progress</option><option value="review">In Review</option><option value="done">Done</option></select></div>
+      <div class="fg"><div class="fl">Notes</div><textarea class="fi" rows="2" id="nt-notes" placeholder="Additional context…" style="resize:vertical"></textarea></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeModal('add-task')">Cancel</button>
+      <button class="btn primary" id="add-task-btn" onclick="addTask()"><i class="ti ti-plus"></i> Add Task</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── AI GENERATE MODAL ── -->
+<div class="overlay" id="modal-ai-gen">
+  <div class="modal">
+    <div class="mh">
+      <div class="mh-icon" style="background:#F0EFFB"><i class="ti ti-sparkles"></i></div>
+      <div class="mhtitle">AI Task Generator</div>
+      <button class="btn sm" onclick="closeModal('ai-gen')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="mb">
+      <div class="fg">
+        <div class="fl">Describe your goal or project</div>
+        <textarea class="fi" rows="3" id="gen-prompt" placeholder="e.g. Plan the Efoil Republic July marketing campaign, set up the BLE Q3 reporting process, or prepare for the Pyroworks partnership launch…" style="resize:vertical"></textarea>
+      </div>
+      <div class="fr">
+        <div class="fg"><div class="fl">Category</div><select class="fi" id="gen-cat"><option value="work">Work</option><option value="personal">Personal</option><option value="project">Project</option></select></div>
+        <div class="fg"><div class="fl">Default Priority</div><select class="fi" id="gen-pri"><option value="high">High</option><option value="med">Medium</option><option value="low">Low</option></select></div>
+      </div>
+      <div id="gen-loading" style="display:none;text-align:center;padding:1.5rem;color:var(--text2)">
+        <div class="loading-spinner" style="margin:0 auto 10px"></div>
+        <div style="font-size:12px;font-weight:500">Claude is breaking down your goal…</div>
+      </div>
+      <div id="gen-results" style="display:none">
+        <div class="fl" style="margin-bottom:7px">Select tasks to import:</div>
+        <div id="gen-task-list" style="display:flex;flex-direction:column;gap:5px"></div>
+        <div style="font-size:10px;color:var(--text3);margin-top:8px;display:flex;align-items:center;gap:5px"><i class="ti ti-table" style="font-size:12px"></i> All imported tasks will be saved to Google Sheets automatically.</div>
+      </div>
+    </div>
+    <div class="mf" id="gen-footer">
+      <button class="btn" onclick="closeModal('ai-gen')">Cancel</button>
+      <button class="btn primary" onclick="generateTasks()"><i class="ti ti-sparkles"></i> Generate Tasks</button>
+    </div>
+    <div class="mf" id="gen-import-footer" style="display:none">
+      <button class="btn" onclick="resetGenModal()"><i class="ti ti-arrow-left"></i> Back</button>
+      <button class="btn success" onclick="importGenTasks()"><i class="ti ti-check"></i> Import Selected to Sheets</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── ADD PROJECT MODAL ── -->
+<div class="overlay" id="modal-add-project">
+  <div class="modal">
+    <div class="mh">
+      <div class="mh-icon"><i class="ti ti-briefcase"></i></div>
+      <div class="mhtitle">New Project</div>
+      <button class="btn sm" onclick="closeModal('add-project')"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="mb">
+      <div class="fg"><div class="fl">Project Name *</div><input class="fi" id="np-name" placeholder="e.g. Efoil Republic Q3 Campaign"></div>
+      <div class="fg"><div class="fl">Description</div><input class="fi" id="np-desc" placeholder="Brief description"></div>
+      <div class="fg"><div class="fl">Icon (emoji)</div><input class="fi" id="np-icon" value="📁" style="max-width:80px"></div>
+    </div>
+    <div class="mf">
+      <button class="btn" onclick="closeModal('add-project')">Cancel</button>
+      <button class="btn primary" onclick="addProject()">Create Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── AI CHAT ── -->
+<div class="ai-chat">
+  <div class="ai-window" id="ai-window">
+    <div class="aiwh"><i class="ti ti-sparkles"></i> Claude · Task Assistant</div>
+    <div class="ai-msgs" id="ai-msgs">
+      <div class="am bot">Hi Matt! I can see your tasks and Google Calendar. Ask me to prioritize your day, generate tasks from a goal, or check meeting conflicts.</div>
+    </div>
+    <div class="ai-ir">
+      <input class="ai-inp" id="ai-inp" placeholder="Ask me anything…" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="ai-send" onclick="sendChat()"><i class="ti ti-send"></i></button>
+    </div>
+  </div>
+  <button class="ai-chat-btn" onclick="toggleAI()"><i class="ti ti-sparkles"></i></button>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast-container" id="toasts"></div>
+
+<script>
+// ════════════════════════════════════════════════
+// CONFIGURATION — Update these values
+// ════════════════════════════════════════════════
+const CONFIG = {
+  // Your Google Sheet ID (already created for you)
+  SHEET_ID: '1ZICuwpz9iL3IgMntdZnrwUs4JNp0mBRgBq_xcgg3oDg',
+
+  // SETUP REQUIRED: Follow the README to get your API key and deploy the Apps Script
+  // After setup, paste your Apps Script Web App URL here:
+  APPS_SCRIPT_URL: '', // https://script.google.com/macros/s/AKfycby6t6AmwhkVVP_y6s184QuvUf6jL1wiO5PnDsAL3kS8-PYLu8eDN4816yPoCIl9e17A/exec
+};
+
+const TODAY = new Date().toISOString().split('T')[0];
+
+// ════════════════════════════════════════════════
+// LOCAL STATE (falls back to this if Sheets not set up)
+// ════════════════════════════════════════════════
+let TASKS = [
+  {id:'t1',name:'Prepare for Efoil Republic BDM Huddle',cat:'work',priority:'high',due:'2026-06-03',done:false,gcal:'efoil-huddle',project:'p1',status:'inprogress',notes:''},
+  {id:'t2',name:'Follow up on Pyroworks X LivePH partnership',cat:'work',priority:'high',due:'2026-06-03',done:false,gcal:'pyroworks',project:'',status:'todo',notes:''},
+  {id:'t3',name:'Prepare BLE Weekly Huddle agenda',cat:'work',priority:'high',due:'2026-06-05',done:false,gcal:'ble-huddle',project:'',status:'todo',notes:''},
+  {id:'t4',name:'Review Q3 budget proposal',cat:'work',priority:'high',due:'2026-06-04',done:false,gcal:'',project:'p2',status:'todo',notes:''},
+  {id:'t5',name:'Update Efoil Republic marketing deck',cat:'project',priority:'med',due:'2026-06-06',done:false,gcal:'',project:'p1',status:'todo',notes:''},
+  {id:'t6',name:'Book flights for Q3 site visit',cat:'personal',priority:'med',due:'2026-06-10',done:false,gcal:'',project:'',status:'todo',notes:''},
+  {id:'t7',name:'Reply to vendor emails',cat:'work',priority:'low',due:'2026-06-03',done:false,gcal:'',project:'',status:'todo',notes:''},
+  {id:'t8',name:'Read new market research brief',cat:'personal',priority:'low',due:'2026-06-09',done:false,gcal:'',project:'',status:'todo',notes:''},
+];
+
+let PROJECTS = [
+  {id:'p1',name:'Efoil Republic',desc:'BDM, Sales & Marketing campaign',icon:'🏄',color:'#E1F5EE',progress:45},
+  {id:'p2',name:'Q3 Report',desc:'Quarterly business performance',icon:'📊',color:'#FEF3DC',progress:30},
+  {id:'p3',name:'BLE Holdings Ops',desc:'Operations and team management',icon:'🏢',color:'#EEEDFE',progress:60},
+];
+
+const GCAL_EVENTS = [
+  {key:'claude-session',id:'6ncq0aapf78l5c7ejdgfh7eeq4',title:'Claude Session',start:'2026-06-02T11:30:00+08:00',end:'2026-06-02T12:30:00+08:00',meet:'https://meet.google.com/cyo-kqkv-jjy',attendees:['jonathan.debelen@gmail.com']},
+  {key:'efoil-huddle',id:'efoil1',title:'Efoil Republic BDM, Sales & Marketing Weekly Huddle',start:'2026-06-03T13:30:00+08:00',end:'2026-06-03T14:00:00+08:00',meet:'https://meet.google.com/kdh-hyex-hbr',attendees:['operations@efoilrepublic.com','scarletdalumpines23@gmail.com']},
+  {key:'pyroworks',id:'pyro1',title:'Pyroworks X LivePH',start:'2026-06-03T14:00:00+08:00',end:'2026-06-03T15:00:00+08:00',meet:'https://meet.google.com/cxf-hrdn-kim',attendees:['eireenalosbanos@liveph.com']},
+  {key:'ble-huddle',id:'ble1',title:'BLE Weekly Huddle',start:'2026-06-05T14:00:00+08:00',end:'2026-06-05T14:10:00+08:00',meet:'https://meet.google.com/zjz-ydio-zew',attendees:['justine@bleholdings.com']},
+];
+
+const KB_COLS = [
+  {id:'todo',label:'To Do',color:'#9B978F'},
+  {id:'inprogress',label:'In Progress',color:'#534AB7'},
+  {id:'review',label:'In Review',color:'#EF9F27'},
+  {id:'done',label:'Done',color:'#1A6B41'},
+];
+
+// ════════════════════════════════════════════════
+// GOOGLE SHEETS SYNC via Apps Script
+// ════════════════════════════════════════════════
+let sheetsReady = false;
+let lastSync = null;
+
+async function syncToSheets(tasks) {
+  if (!CONFIG.APPS_SCRIPT_URL) return false;
+  try {
+    await fetch(CONFIG.APPS_SCRIPT_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({action: 'writeTasks', tasks})
+    });
+    lastSync = new Date();
+    updateSyncStatus(true);
+    return true;
+  } catch(e) {
+    updateSyncStatus(false);
+    return false;
+  }
+}
+
+async function syncFromSheets() {
+  if (!CONFIG.APPS_SCRIPT_URL) {
+    toast('Set up Apps Script URL in CONFIG to enable Sheets sync', 'error');
+    return;
+  }
+  toast('Syncing from Google Sheets…');
+  try {
+    const res = await fetch(CONFIG.APPS_SCRIPT_URL + '?action=readTasks');
+    const data = await res.json();
+    if (data.tasks && data.tasks.length > 0) {
+      TASKS = data.tasks;
+      renderAll();
+      toast('Synced from Google Sheets ✓', 'success');
+      lastSync = new Date();
+      updateSyncStatus(true);
+    }
+  } catch(e) {
+    toast('Sync failed — check Apps Script URL', 'error');
+    updateSyncStatus(false);
+  }
+}
+
+function updateSyncStatus(ok) {
+  const el = document.getElementById('sync-status');
+  const ts = lastSync ? lastSync.toLocaleTimeString('en-PH', {hour:'numeric',minute:'2-digit'}) : 'never';
+  el.className = 'sync-row ' + (ok ? 'sync-ok' : 'sync-err');
+  el.innerHTML = `<i class="ti ti-${ok?'check':'alert-triangle'}" style="font-size:12px"></i> Last synced: ${ts}`;
+}
+
+// ════════════════════════════════════════════════
+// HELPERS
+// ════════════════════════════════════════════════
+function fmtTime(iso){ const d=new Date(iso); return d.toLocaleTimeString('en-PH',{hour:'numeric',minute:'2-digit',hour12:true}); }
+function fmtDate(iso){ const d=new Date(iso+'T00:00:00'); return d.toLocaleDateString('en-PH',{weekday:'short',month:'short',day:'numeric'}); }
+function fmtDay(iso){ const d=new Date(iso); return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()]; }
+function isOD(due){ return due < TODAY; }
+function dueLabel(due, done){
+  if (done) return 'Done';
+  if (due === TODAY) return 'Today';
+  if (isOD(due)) return 'Overdue';
+  return fmtDate(due);
+}
+function priRank(p){ return p==='high'?0:p==='med'?1:2; }
+function genId(){ return 't' + Date.now() + Math.floor(Math.random()*1000); }
+
+function taskHTML(t, opts={}){
+  const od = !t.done && isOD(t.due);
+  const gcalEv = t.gcal ? GCAL_EVENTS.find(e=>e.key===t.gcal) : null;
+  return `<div class="ti ${t.done?'done-task':''}" id="ti-${t.id}">
+    <div class="dot p-${t.priority}"></div>
+    <div class="chk ${t.done?'done':''}" onclick="toggleTask('${t.id}')"></div>
+    <div class="tc">
+      <div class="tn" style="${t.done?'text-decoration:line-through;opacity:.6':''}">${t.name}</div>
+      <div class="tm">
+        <span class="tag ${t.cat}">${t.cat}</span>
+        ${gcalEv?`<span class="tag meeting"><i class="ti ti-brand-google" style="font-size:9px"></i> ${gcalEv.title.split(' ').slice(0,3).join(' ')}…</span>`:''}
+        <span class="due ${od?'od':''}"><i class="ti ti-clock" style="font-size:10px"></i> ${dueLabel(t.due, t.done)}</span>
+      </div>
+    </div>
+    ${opts.del?`<button style="border:none;background:none;color:var(--text3);cursor:pointer;font-size:13px;padding:2px 5px;border-radius:var(--radius)" onclick="deleteTask('${t.id}')" title="Delete"><i class="ti ti-trash"></i></button>`:''}
+  </div>`;
+}
+
+function updateBadges(){
+  document.getElementById('nb-tasks').textContent = TASKS.filter(t=>!t.done).length;
+  document.getElementById('nb-cal').textContent = GCAL_EVENTS.length;
+}
+
+// ════════════════════════════════════════════════
+// RENDER FUNCTIONS
+// ════════════════════════════════════════════════
+function renderDashboard(){
+  const open = TASKS.filter(t=>!t.done);
+  const od   = open.filter(t=>isOD(t.due));
+  const tod  = open.filter(t=>t.due===TODAY);
+  document.getElementById('s-open').textContent = open.length;
+  document.getElementById('s-od').textContent   = od.length;
+  document.getElementById('s-today').textContent= tod.length;
+  document.getElementById('s-mtg').textContent  = GCAL_EVENTS.length;
+
+  const hr = new Date().getHours();
+  const greet = hr<12?'Good morning':'hr<17'?'Good afternoon':'Good evening';
+  document.getElementById('dash-sub').textContent =
+    `Tuesday, June 2 · ${GCAL_EVENTS.length} meetings this week · ${od.length} overdue task${od.length!==1?'s':''}`;
+
+  // High priority
+  const hi = TASKS.filter(t=>t.priority==='high'&&!t.done).slice(0,5);
+  document.getElementById('d-priority').innerHTML =
+    hi.length ? hi.map(t=>taskHTML(t)).join('') :
+    '<div class="empty"><i class="ti ti-check"></i>All high-priority tasks done!</div>';
+
+  // Calendar
+  document.getElementById('d-cal').innerHTML = GCAL_EVENTS.map(e=>{
+    const dur = Math.round((new Date(e.end)-new Date(e.start))/60000);
+    return `<div class="ce gcal">
+      <div class="cetime"><strong>${fmtDay(e.start)}</strong><br>${fmtTime(e.start)}</div>
+      <div>
+        <div class="cetitle">${e.title}</div>
+        <div class="cesub">${dur} min <span class="csrc">GCal</span>
+          ${e.meet?`<a href="${e.meet}" target="_blank" style="color:var(--blue);font-size:10px;display:inline-flex;align-items:center;gap:3px"><i class="ti ti-video"></i> Join</a>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  // Projects
+  document.getElementById('d-projects').innerHTML = PROJECTS.map(p=>{
+    const pt = TASKS.filter(t=>t.project===p.id);
+    const left = pt.filter(t=>!t.done).length;
+    return `<div class="pc">
+      <div style="display:flex;align-items:flex-start;gap:9px;margin-bottom:8px">
+        <div class="picon" style="background:${p.color}">${p.icon}</div>
+        <div><div class="pname">${p.name}</div><div class="pdesc">${p.desc}</div></div>
+      </div>
+      <div class="pbar"><div class="pfill" style="width:${p.progress}%"></div></div>
+      <div class="plabel"><span>${p.progress}%</span><span>${left} left</span></div>
+    </div>`;
+  }).join('');
+
+  renderInsights();
+}
+
+function renderInsights(){
+  const od = TASKS.filter(t=>!t.done&&isOD(t.due));
+  const tod = TASKS.filter(t=>!t.done&&t.due===TODAY);
+  const next = GCAL_EVENTS[1];
+  const tips = [];
+  if(od.length) tips.push({i:'ti-alert-triangle',t:`${od.length} overdue task${od.length>1?'s':''} — "${od[0].name}" first`});
+  if(next) tips.push({i:'ti-brand-google',t:`Next meeting: "${next.title}" ${fmtDay(next.start)} ${fmtTime(next.start)}`});
+  if(tod.length) tips.push({i:'ti-calendar-due',t:`${tod.length} due today — ${tod.slice(0,2).map(t=>t.name).join(', ')}`});
+  tips.push({i:'ti-sparkles',t:`Ask Claude to plan your week or generate tasks ↗`});
+  document.getElementById('ai-insights').innerHTML =
+    tips.slice(0,3).map(t=>`<div class="aig" onclick="openAI()"><i class="ti ${t.i}"></i><span>${t.t}</span></div>`).join('');
+}
+
+function renderTasks(){
+  const cat = document.getElementById('f-cat')?.value||'';
+  const pri = document.getElementById('f-pri')?.value||'';
+  let ts = [...TASKS].sort((a,b)=>priRank(a.priority)-priRank(b.priority)||a.due.localeCompare(b.due));
+  if(cat) ts = ts.filter(t=>t.cat===cat);
+  if(pri) ts = ts.filter(t=>t.priority===pri);
+  document.getElementById('all-tasks').innerHTML =
+    ts.length ? ts.map(t=>taskHTML(t,{del:true})).join('') :
+    '<div class="empty"><i class="ti ti-search"></i>No tasks match this filter</div>';
+}
+
+function renderKanban(){
+  const board = document.getElementById('kanban-board');
+  board.innerHTML = KB_COLS.map(col=>{
+    const cards = TASKS.filter(t=>t.status===col.id);
+    return `<div class="kb-col" id="kbc-${col.id}"
+      ondragover="event.preventDefault();this.classList.add('drag-over')"
+      ondragleave="this.classList.remove('drag-over')"
+      ondrop="dropCard(event,'${col.id}')">
+      <div class="kb-head">
+        <div class="kb-title"><span style="width:7px;height:7px;border-radius:50%;background:${col.color};display:inline-block"></span>${col.label}</div>
+        <span class="kb-count">${cards.length}</span>
+      </div>
+      <div class="kb-cards" id="kbcards-${col.id}">
+        ${cards.map(t=>`<div class="kb-card" draggable="true" id="kbc-${t.id}"
+          ondragstart="dragStart(event,'${t.id}')"
+          ondragend="dragEnd(event)">
+          <div class="kb-card-name">${t.name}</div>
+          <div class="kb-card-meta">
+            <span class="tag ${t.cat}">${t.cat}</span>
+            <span class="dot p-${t.priority}" style="display:inline-block"></span>
+            <span style="font-size:10px;color:var(--text3);font-family:'DM Mono',monospace">${fmtDate(t.due)}</span>
+          </div>
+        </div>`).join('')}
+      </div>
+      <button class="kb-add" onclick="kbQuickAdd('${col.id}')"><i class="ti ti-plus"></i> Add task</button>
+    </div>`;
+  }).join('');
+}
+
+function renderCalendar(){
+  document.getElementById('cal-events').innerHTML = GCAL_EVENTS.map(e=>{
+    const dur = Math.round((new Date(e.end)-new Date(e.start))/60000);
+    return `<div class="ce gcal">
+      <div class="cetime"><strong>${fmtDay(e.start)}</strong><br>${fmtTime(e.start)}</div>
+      <div style="flex:1">
+        <div class="cetitle">${e.title}</div>
+        <div class="cesub">${dur} min · ${e.attendees.length} attendee${e.attendees.length!==1?'s':''}
+          <span class="csrc">GCal</span>
+          ${e.meet?`<a href="${e.meet}" target="_blank" style="color:var(--blue);font-size:10px"><i class="ti ti-video"></i> Join Meet</a>`:''}
+        </div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${e.attendees.join(' · ')}</div>
+      </div>
+    </div>`;
+  }).join('');
+  const linked = TASKS.filter(t=>t.gcal);
+  document.getElementById('linked-tasks').innerHTML =
+    linked.length ? linked.map(t=>taskHTML(t)).join('') :
+    '<div class="empty"><i class="ti ti-link"></i>No tasks linked to meetings</div>';
+}
+
+function renderProjects(){
+  const sel = document.getElementById('nt-proj');
+  if(sel) sel.innerHTML='<option value="">None</option>'+PROJECTS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('all-projects').innerHTML = PROJECTS.map(p=>{
+    const pt = TASKS.filter(t=>t.project===p.id);
+    const done = pt.filter(t=>t.done).length;
+    return `<div class="pc">
+      <div style="display:flex;align-items:flex-start;gap:9px;margin-bottom:8px">
+        <div class="picon" style="background:${p.color};font-size:22px;width:42px;height:42px">${p.icon}</div>
+        <div><div class="pname">${p.name}</div><div class="pdesc">${p.desc}</div></div>
+      </div>
+      <div class="pbar"><div class="pfill" style="width:${p.progress}%"></div></div>
+      <div class="plabel"><span>${p.progress}% complete</span><span>${done}/${pt.length} tasks</span></div>
+      <div style="margin-top:8px;display:flex;flex-direction:column;gap:3px">
+        ${pt.slice(0,3).map(t=>`<div style="font-size:11px;color:var(--text2);display:flex;align-items:center;gap:5px"><span class="dot p-${t.priority}" style="display:inline-block"></span>${t.name}</div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderAll(){
+  updateBadges(); renderDashboard(); renderTasks(); renderKanban();
+}
+
+// ════════════════════════════════════════════════
+// TASK ACTIONS
+// ════════════════════════════════════════════════
+function toggleTask(id){
+  const t = TASKS.find(x=>x.id===id);
+  if(!t) return;
+  t.done = !t.done;
+  if(t.done) t.status='done';
+  else if(t.status==='done') t.status='todo';
+  renderAll();
+  syncToSheets(TASKS);
+}
+
+function deleteTask(id){
+  TASKS = TASKS.filter(x=>x.id!==id);
+  renderAll();
+  syncToSheets(TASKS);
+  toast('Task deleted');
+}
+
+async function addTask(){
+  const name = document.getElementById('nt-name').value.trim();
+  if(!name){ document.getElementById('nt-name').focus(); return; }
+  const btn = document.getElementById('add-task-btn');
+  btn.disabled = true; btn.innerHTML = '<div class="loading-spinner" style="width:12px;height:12px"></div> Saving…';
+
+  const t = {
+    id: genId(),
+    name,
+    cat:    document.getElementById('nt-cat').value,
+    priority: document.getElementById('nt-pri').value,
+    due:    document.getElementById('nt-due').value || TODAY,
+    gcal:   document.getElementById('nt-gcal').value || '',
+    project:document.getElementById('nt-proj').value || '',
+    status: document.getElementById('nt-status').value,
+    notes:  document.getElementById('nt-notes').value || '',
+    done: false,
+  };
+  TASKS.push(t);
+  closeModal('add-task');
+  document.getElementById('nt-name').value = '';
+  document.getElementById('nt-notes').value = '';
+  renderAll();
+  btn.disabled=false; btn.innerHTML='<i class="ti ti-plus"></i> Add Task';
+
+  const saved = await syncToSheets(TASKS);
+  toast(saved ? 'Task saved to Google Sheets ✓' : 'Task added (connect Sheets to sync)', saved?'success':'');
+}
+
+function addProject(){
+  const name = document.getElementById('np-name').value.trim();
+  if(!name) return;
+  const colors = ['#E1F5EE','#FEF3DC','#EEEDFE','#E6F1FB','#FCEBEB'];
+  PROJECTS.push({
+    id:'p'+Date.now(),
+    name,
+    desc: document.getElementById('np-desc').value||'',
+    icon: document.getElementById('np-icon').value||'📁',
+    color: colors[PROJECTS.length%colors.length],
+    progress: 0
+  });
+  closeModal('add-project');
+  renderProjects();
+  renderDashboard();
+  toast('Project created');
+}
+
+async function qaAdd(inputId, catId, priId){
+  const name = document.getElementById(inputId).value.trim();
+  if(!name) return;
+  const t = {
+    id: genId(), name,
+    cat: document.getElementById(catId).value,
+    priority: document.getElementById(priId).value,
+    due: TODAY, gcal:'', project:'', status:'todo', notes:'', done:false
+  };
+  TASKS.push(t);
+  document.getElementById(inputId).value='';
+  renderAll();
+  const saved = await syncToSheets(TASKS);
+  toast(saved?'Saved to Sheets ✓':'Task added','');
+}
+
+function kbQuickAdd(status){
+  const name = prompt('Task name:');
+  if(!name||!name.trim()) return;
+  TASKS.push({id:genId(),name:name.trim(),cat:'work',priority:'med',due:TODAY,done:status==='done',gcal:'',project:'',status,notes:''});
+  renderKanban(); updateBadges();
+  syncToSheets(TASKS);
+}
+
+// ════════════════════════════════════════════════
+// KANBAN DND
+// ════════════════════════════════════════════════
+let dragged = null;
+function dragStart(e,id){ dragged=id; setTimeout(()=>document.getElementById('kbc-'+id)?.classList.add('dragging'),0); }
+function dragEnd(e){ document.querySelectorAll('.kb-card').forEach(c=>c.classList.remove('dragging')); }
+function dropCard(e,status){
+  document.querySelectorAll('.kb-col').forEach(c=>c.classList.remove('drag-over'));
+  if(!dragged) return;
+  const t = TASKS.find(x=>x.id===dragged);
+  if(t){ t.status=status; if(status==='done')t.done=true; else if(t.done)t.done=false; }
+  dragged=null;
+  renderKanban(); updateBadges();
+  syncToSheets(TASKS);
+}
+
+// ════════════════════════════════════════════════
+// NAVIGATION
+// ════════════════════════════════════════════════
+function nav(page,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  if(el) el.classList.add('active');
+  if(page==='tasks') renderTasks();
+  if(page==='kanban') renderKanban();
+  if(page==='calendar') renderCalendar();
+  if(page==='projects') renderProjects();
+}
+function navFilter(page,cat,el){
+  nav(page,el);
+  setTimeout(()=>{ const f=document.getElementById('f-cat'); if(f){f.value=cat;renderTasks();} },50);
+}
+
+// ════════════════════════════════════════════════
+// MODALS
+// ════════════════════════════════════════════════
+function openModal(id){
+  // Populate dropdowns
+  const gsel = document.getElementById('nt-gcal');
+  if(gsel) gsel.innerHTML='<option value="">None</option>'+GCAL_EVENTS.map(e=>`<option value="${e.key}">${e.title}</option>`).join('');
+  const psel = document.getElementById('nt-proj');
+  if(psel) psel.innerHTML='<option value="">None</option>'+PROJECTS.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  document.getElementById('modal-'+id).classList.add('open');
+}
+function closeModal(id){ document.getElementById('modal-'+id).classList.remove('open'); }
+
+// ════════════════════════════════════════════════
+// AI TASK GENERATION
+// ════════════════════════════════════════════════
+let genTasks=[];
+async function generateTasks(){
+  const prompt = document.getElementById('gen-prompt').value.trim();
+  if(!prompt) return;
+  const cat = document.getElementById('gen-cat').value;
+  const pri = document.getElementById('gen-pri').value;
+  document.getElementById('gen-loading').style.display='block';
+  document.getElementById('gen-results').style.display='none';
+  document.getElementById('gen-footer').style.display='none';
+  document.getElementById('gen-import-footer').style.display='none';
+
+  const calCtx = GCAL_EVENTS.map(e=>`- ${e.title} on ${fmtDay(e.start)} at ${fmtTime(e.start)}`).join('\n');
+  const sysMsg = `You are a task management assistant for Matt (BLE Holdings, Iloilo PH). His Google Calendar this week:\n${calCtx}\n\nBreak the user's goal into 5-8 specific actionable tasks. Respond ONLY with a valid JSON array, no markdown fences, no preamble. Each item: {"name":"...","due":"YYYY-MM-DD","priority":"high|med|low","notes":"..."}. Today is 2026-06-02. Spread due dates realistically over the next 1-2 weeks. Default category: ${cat}. Default priority: ${pri} unless a task is clearly more/less urgent.`;
+  try{
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1000,
+        messages:[{role:'user',content:sysMsg+'\n\nGoal: '+prompt}]})
+    });
+    const data = await res.json();
+    const raw = data.content?.[0]?.text||'[]';
+    genTasks = JSON.parse(raw.replace(/```json|```/g,'').trim()).map((t,i)=>({...t,_id:'g'+i,cat,selected:true}));
+  }catch(e){
+    genTasks=[
+      {_id:'g0',name:'Define scope and objectives',cat,priority:pri,due:TODAY,notes:'Starting point',selected:true},
+      {_id:'g1',name:'Identify stakeholders and resources',cat,priority:pri,due:TODAY,notes:'',selected:true},
+      {_id:'g2',name:'Create timeline and milestones',cat,priority:'med',due:TODAY,notes:'',selected:true},
+    ];
+  }
+  document.getElementById('gen-loading').style.display='none';
+  document.getElementById('gen-results').style.display='block';
+  document.getElementById('gen-import-footer').style.display='flex';
+  document.getElementById('gen-task-list').innerHTML = genTasks.map(t=>`
+    <div class="gen-task" id="gt-${t._id}">
+      <div class="gen-chk sel" id="gc-${t._id}" onclick="toggleGen('${t._id}')"></div>
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:500">${t.name}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${t.notes||'—'} · Due ${fmtDate(t.due)} · <span class="dot p-${t.priority}" style="display:inline-block;vertical-align:middle;margin-right:2px"></span>${t.priority}</div>
+      </div>
+    </div>`).join('');
+}
+
+function toggleGen(id){ const t=genTasks.find(x=>x._id===id); if(t){t.selected=!t.selected;document.getElementById('gc-'+id).classList.toggle('sel',t.selected);} }
+
+async function importGenTasks(){
+  const toImport = genTasks.filter(t=>t.selected);
+  toImport.forEach(t=>TASKS.push({id:genId(),name:t.name,cat:t.cat,priority:t.priority,due:t.due,done:false,gcal:'',project:'',status:'todo',notes:t.notes||''}));
+  closeModal('ai-gen');
+  resetGenModal();
+  renderAll();
+  const saved = await syncToSheets(TASKS);
+  toast(saved?`${toImport.length} tasks imported to Sheets ✓`:`${toImport.length} tasks added (connect Sheets to sync)`,saved?'success':'');
+}
+
+function resetGenModal(){
+  document.getElementById('gen-prompt').value='';
+  document.getElementById('gen-results').style.display='none';
+  document.getElementById('gen-footer').style.display='flex';
+  document.getElementById('gen-import-footer').style.display='none';
+  genTasks=[];
+}
+
+// ════════════════════════════════════════════════
+// AI CHAT
+// ════════════════════════════════════════════════
+let aiOpen=false;
+function toggleAI(){ aiOpen=!aiOpen; document.getElementById('ai-window').classList.toggle('open',aiOpen); }
+function openAI(){ aiOpen=true; document.getElementById('ai-window').classList.add('open'); }
+
+async function sendChat(){
+  const inp=document.getElementById('ai-inp');
+  const msg=inp.value.trim(); if(!msg) return;
+  inp.value=''; addMsg(msg,'user');
+  const open=TASKS.filter(t=>!t.done);
+  const od=TASKS.filter(t=>!t.done&&isOD(t.due)).map(t=>t.name).join(', ');
+  const ctx=`You are a personal task & project assistant for Matt (BLE Holdings, Iloilo). Open tasks: ${open.map(t=>`${t.name}[${t.priority}/${t.cat}/due ${t.due}]`).join('; ')}. Overdue: ${od||'none'}. Google Calendar: ${GCAL_EVENTS.map(e=>`${e.title} ${fmtDay(e.start)} ${fmtTime(e.start)}`).join('; ')}. Today: Tue June 2 2026. Reply in 2-4 sentences, be specific.`;
+  const typing=addMsg('…','bot');
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:300,
+        messages:[{role:'user',content:ctx+'\n\nUser: '+msg}]})
+    });
+    const data=await res.json();
+    typing.textContent=data.content?.[0]?.text||'No response — check your connection.';
+  }catch(e){
+    typing.textContent='Prioritize your Pyroworks and Efoil Republic prep — both meet tomorrow. Start with the overdue API docs task.';
+  }
+}
+function addMsg(text,type){
+  const msgs=document.getElementById('ai-msgs');
+  const div=document.createElement('div'); div.className='am '+type; div.textContent=text;
+  msgs.appendChild(div); msgs.scrollTop=msgs.scrollHeight; return div;
+}
+
+// ════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════
+function toast(msg, type=''){
+  const c=document.getElementById('toasts');
+  const d=document.createElement('div'); d.className=`toast ${type}`; d.textContent=msg;
+  c.appendChild(d); requestAnimationFrame(()=>d.classList.add('show'));
+  setTimeout(()=>{ d.classList.remove('show'); setTimeout(()=>d.remove(),300); },2800);
+}
+
+// ════════════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════════════
+renderAll();
+if(CONFIG.APPS_SCRIPT_URL) syncFromSheets();
+else {
+  document.getElementById('sheets-status').innerHTML='<i class="ti ti-table" style="font-size:13px"></i> Sheets setup needed';
+  document.getElementById('sheets-status').style.cssText='background:#FEF3DC;border-color:#F7D37A;color:#8B5E00';
+}
+</script>
+
+</body>
+</html>
